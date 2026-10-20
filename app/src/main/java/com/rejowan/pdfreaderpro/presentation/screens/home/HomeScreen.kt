@@ -336,11 +336,10 @@ fun HomeScreen(
                             CollapsingHomeHeader(
                                 collapseProgress = headerCollapseProgress,
                                 onSearchClick = { navController.navigateToSearch() },
-                                onSortClick = { showSortSheet = true },
                                 onStatsClick = { showStatsSheet = true }
                             )
 
-                            // Compact tabs with view mode toggle
+                            // Compact tabs with view mode toggle and sort button
                             CompactTabRow(
                                 tabs = HomeSubTab.entries.map { stringResource(it.titleRes) },
                                 selectedIndex = homeSubTabPagerState.currentPage,
@@ -357,7 +356,8 @@ fun HomeScreen(
                                         else
                                             com.rejowan.pdfreaderpro.domain.model.ViewMode.GRID
                                     )
-                                }
+                                },
+                                onSortClick = { showSortSheet = true }
                             )
 
                             HorizontalPager(

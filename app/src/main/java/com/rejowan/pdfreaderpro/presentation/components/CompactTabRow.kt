@@ -5,11 +5,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.automirrored.outlined.ViewList
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,6 +44,7 @@ fun CompactTabRow(
     onTabSelected: (Int) -> Unit,
     isGridView: Boolean,
     onViewModeToggle: () -> Unit,
+    onSortClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val softPurple = Color(0xFF9575CD)
@@ -67,7 +71,7 @@ fun CompactTabRow(
             }
         }
 
-        // View Mode Toggle - Right aligned
+        // Action icons on the right: View Mode Toggles + Sort Button
         Row(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -110,6 +114,30 @@ fun CompactTabRow(
                         contentDescription = stringResource(R.string.grid_view),
                         modifier = Modifier.size(18.dp)
                     )
+                }
+            }
+
+            // Sort button on the far right
+            if (onSortClick != null) {
+                TooltipBox(
+                    positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+                    tooltip = {
+                        PlainTooltip {
+                            Text(stringResource(R.string.sort_files_desc))
+                        }
+                    },
+                    state = rememberTooltipState()
+                ) {
+                    ViewModeIcon(
+                        isSelected = false,
+                        onClick = onSortClick
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.Sort,
+                            contentDescription = stringResource(R.string.sort_files_desc),
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
         }
@@ -169,7 +197,7 @@ private fun ViewModeIcon(
         targetValue = if (isSelected)
             MaterialTheme.colorScheme.onSurface
         else
-            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
         label = "view mode tint"
     )
 
