@@ -1,11 +1,11 @@
 [versions]
 # Android SDK
 compileSdk = "37"
-targetSdk = "37"
+targetSdk = "36"
 minSdk = "24"
 
 # Core Android
-agp = "9.4.1"
+agp = "9.1.1"
 kotlin = "2.4.20"
 coreKtx = "1.19.1"
 appcompat = "1.8.0"

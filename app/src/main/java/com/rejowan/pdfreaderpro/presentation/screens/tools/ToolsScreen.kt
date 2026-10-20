@@ -1,5 +1,8 @@
 package com.rejowan.pdfreaderpro.presentation.screens.tools
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -9,34 +12,30 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.ui.platform.LocalContext
-import com.rejowan.pdfreaderpro.presentation.navigation.navigateToSignTool
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.CallMerge
 import androidx.compose.material.icons.automirrored.filled.CallSplit
 import androidx.compose.material.icons.automirrored.filled.RotateRight
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Compress
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Draw
 import androidx.compose.material.icons.filled.FormatListNumbered
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.Reorder
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.Icon
@@ -56,24 +55,27 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.annotation.StringRes
 import com.rejowan.pdfreaderpro.R
 import com.rejowan.pdfreaderpro.presentation.navigation.navigateToCompressTool
-import com.rejowan.pdfreaderpro.presentation.navigation.navigateToMergeTool
+import com.rejowan.pdfreaderpro.presentation.navigation.navigateToImageToPdfTool
 import com.rejowan.pdfreaderpro.presentation.navigation.navigateToLockTool
+import com.rejowan.pdfreaderpro.presentation.navigation.navigateToMergeTool
+import com.rejowan.pdfreaderpro.presentation.navigation.navigateToPageNumbersTool
+import com.rejowan.pdfreaderpro.presentation.navigation.navigateToPdfToImageTool
+import com.rejowan.pdfreaderpro.presentation.navigation.navigateToRemovePagesTool
 import com.rejowan.pdfreaderpro.presentation.navigation.navigateToReorderTool
+import com.rejowan.pdfreaderpro.presentation.navigation.navigateToRotateTool
+import com.rejowan.pdfreaderpro.presentation.navigation.navigateToSignTool
+import com.rejowan.pdfreaderpro.presentation.navigation.navigateToSplitTool
 import com.rejowan.pdfreaderpro.presentation.navigation.navigateToUnlockTool
 import com.rejowan.pdfreaderpro.presentation.navigation.navigateToWatermarkTool
-import com.rejowan.pdfreaderpro.presentation.navigation.navigateToPageNumbersTool
-import com.rejowan.pdfreaderpro.presentation.navigation.navigateToRemovePagesTool
-import com.rejowan.pdfreaderpro.presentation.navigation.navigateToRotateTool
-import com.rejowan.pdfreaderpro.presentation.navigation.navigateToSplitTool
-import com.rejowan.pdfreaderpro.presentation.navigation.navigateToImageToPdfTool
-import com.rejowan.pdfreaderpro.presentation.navigation.navigateToPdfToImageTool
 import kotlinx.coroutines.delay
 
 // Accent colors (consistent with app design system)
@@ -224,12 +226,12 @@ fun ToolsScreen(
     }
     val pickPdfToSign = { signPickerLauncher.launch(arrayOf("application/pdf")) }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp)
-            .padding(top = 8.dp, bottom = 80.dp)
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         var animationIndex = 0
 
@@ -237,21 +239,33 @@ fun ToolsScreen(
             val toolsInCategory = pdfTools.filter { it.category == category }
 
             if (toolsInCategory.isNotEmpty()) {
-                // Section label
-                SectionLabel(
-                    text = stringResource(category.titleRes),
-                    delay = animationIndex * 50
-                )
+                val headerDelay = animationIndex * 50
                 animationIndex++
 
-                Spacer(modifier = Modifier.height(8.dp))
+                // Full-width section header spanning both columns
+                item(
+                    span = { GridItemSpan(maxLineSpan) },
+                    key = "header_${category.name}"
+                ) {
+                    SectionLabel(
+                        text = stringResource(category.titleRes),
+                        delay = headerDelay,
+                        modifier = Modifier.padding(top = 10.dp, bottom = 2.dp)
+                    )
+                }
 
-                // Tool items
-                toolsInCategory.forEach { tool ->
+                // Grid items for each tool in the category
+                items(
+                    items = toolsInCategory,
+                    key = { it.id }
+                ) { tool ->
+                    val itemDelay = animationIndex * 50
+                    animationIndex++
+
                     ToolItem(
                         tool = tool,
                         accentColor = category.accentColor,
-                        animationDelay = animationIndex * 50,
+                        animationDelay = itemDelay,
                         onClick = {
                             when (tool.id) {
                                 "merge" -> navController.navigateToMergeTool()
@@ -270,12 +284,7 @@ fun ToolsScreen(
                             }
                         }
                     )
-                    animationIndex++
-
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
@@ -338,7 +347,7 @@ private fun ToolItem(
         modifier = modifier
             .fillMaxWidth()
             .scale(scale)
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(16.dp))
             .then(
                 if (tool.isEnabled) {
                     Modifier.clickable(
@@ -350,78 +359,54 @@ private fun ToolItem(
                     Modifier
                 }
             ),
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 1.dp
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(72.dp)
-                .padding(horizontal = 14.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 12.dp, vertical = 18.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            // Icon container
+            // Icon prominently at the top/center
             Surface(
-                shape = RoundedCornerShape(10.dp),
+                shape = RoundedCornerShape(12.dp),
                 color = effectiveAccentColor.copy(alpha = 0.12f)
             ) {
                 Icon(
                     imageVector = tool.icon,
                     contentDescription = stringResource(R.string.cd_decorative),
                     modifier = Modifier
-                        .padding(10.dp)
-                        .size(24.dp),
+                        .padding(12.dp)
+                        .size(28.dp),
                     tint = effectiveAccentColor
                 )
             }
 
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Text content
-            Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = stringResource(tool.nameRes),
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Medium
-                        ),
-                        color = if (tool.isEnabled) {
-                            MaterialTheme.colorScheme.onSurface
-                        } else {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                        }
-                    )
-
-                    // Coming Soon badge
-                    if (!tool.isEnabled) {
-                        ComingSoonBadge()
-                    }
+            // Title directly below it (no subtitle/description)
+            Text(
+                text = stringResource(tool.nameRes),
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontWeight = FontWeight.SemiBold
+                ),
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                color = if (tool.isEnabled) {
+                    MaterialTheme.colorScheme.onSurface
+                } else {
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                 }
+            )
 
-                Spacer(modifier = Modifier.height(2.dp))
-
-                Text(
-                    text = stringResource(tool.descriptionRes),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (tool.isEnabled) {
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                    }
-                )
-            }
-
-            // Arrow for enabled tools
-            if (tool.isEnabled) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                    contentDescription = stringResource(R.string.cd_decorative),
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                )
+            // Coming soon indicator if disabled
+            if (!tool.isEnabled) {
+                Spacer(modifier = Modifier.height(6.dp))
+                ComingSoonBadge()
             }
         }
     }

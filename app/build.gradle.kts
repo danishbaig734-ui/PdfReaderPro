@@ -31,6 +31,12 @@ android {
     }
 
     signingConfigs {
+        create("debugConfig") {
+            storeFile = file("${rootDir}/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
         create("release") {
             // Try keystore.properties first, then environment variables
             storeFile = file(
@@ -52,6 +58,7 @@ android {
 
     buildTypes {
         debug {
+            signingConfig = signingConfigs.getByName("debugConfig")
             // Debug builds enable logging
             buildConfigField("boolean", "ENABLE_LOGGING", "true")
             // Coverage is measured from the debug unit tests.
@@ -76,6 +83,9 @@ android {
         // Android framework stubs return defaults instead of throwing, so the PDF
         // rendering paths can be driven from JVM tests with the classes mocked.
         unitTests.isReturnDefaultValues = true
+        unitTests.all {
+            it.jvmArgs("-XX:+EnableDynamicAgentLoading", "-Djdk.attach.allowAttachSelf=true")
+        }
     }
 
     androidResources {
@@ -90,8 +100,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     packaging {
@@ -107,7 +117,7 @@ android {
 
 kotlin {
     compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
 

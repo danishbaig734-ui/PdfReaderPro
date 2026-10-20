@@ -1,0 +1,6 @@
+{
+  "name": "PDF Reader Pro",
+  "description": "Fast and feature-packed PDF reader and tools app for Android",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
