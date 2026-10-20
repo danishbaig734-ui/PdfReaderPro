@@ -61,14 +61,17 @@ jobs:
       # the APK build carries their memory into packaging, where builds hung.
       # The watchdog prints Gradle's threads 3 minutes before a step's limit, the
       # last moment a hung build can still be inspected.
+      - name: Make Scripts Executable
+        run: chmod +x gradlew .github/scripts/gradle-watchdog.sh
+  
       - name: Run Lint
         timeout-minutes: 20
-        run: chmod +x gradlew && .github/scripts/gradle-watchdog.sh 17 :app:lint --no-daemon
-
+        run: .github/scripts/gradle-watchdog.sh 17 :app:lint --no-daemon
+        
       - name: Run Unit Tests
         timeout-minutes: 20
         run: .github/scripts/gradle-watchdog.sh 17 :app:testDebugUnitTest --no-daemon
-
+        
       - name: Build Debug APK
         timeout-minutes: 15
         run: .github/scripts/gradle-watchdog.sh 12 :app:assembleDebug --no-daemon
