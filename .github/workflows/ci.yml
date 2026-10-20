@@ -79,7 +79,13 @@ jobs:
       - name: Build Debug APK
         timeout-minutes: 15
         run: .github/scripts/gradle-watchdog.sh 12 :app:assembleDebug --no-daemon
-
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with :
+          name: PdfReaderPro-Debug-APK
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 14
+          
       - name: Upload Reports
         if: failure()
         uses: actions/upload-artifact@v4
